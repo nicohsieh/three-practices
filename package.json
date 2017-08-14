@@ -22,12 +22,18 @@
     "if-env": "^1.0.0",
     "node-sass": "^4.5.3",
     "preact-cli": "^1.4.1",
-    "sass-loader": "^6.0.6"
+    "sass-loader": "^6.0.6",
+    "webpack-glsl-loader": "^1.0.1"
   },
   "dependencies": {
     "preact": "^8.2.1",
     "preact-compat": "^3.17.0",
     "preact-router": "^2.5.5",
     "three": "^0.86.0"
-  }
+  },
+  "browserslist": [
+    "> 1%",
+    "IE >= 11",
+    "last 2 versions"
+  ]
 }

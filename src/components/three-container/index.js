@@ -97,10 +97,14 @@ export default class ThreeContainer extends Component {
 		this.activeFrame = this.frameCount
 	}
 
+
 	animate = () => {
 		this.renderer.render(this.scene, this.camera)
 		this.frameCount++
 		this.actionMoving = false
+		if (this.props.customAnimate) {
+			this.props.customAnimate()
+		}
 		requestAnimationFrame(this.animate)
 	}
 	

@@ -1,6 +1,4 @@
-// optimizedResize
-
-(function() {
+export function optimizedResize() {
     let throttle = function(type, name, obj) {
         obj = obj || window;
         var running = false;
@@ -8,12 +6,12 @@
             if (running) { return; }
             running = true;
              requestAnimationFrame(function() {
-                obj.dispatchEvent(new CustomEvent(name));
+                obj.dispatchEvent(new CustomEvent(name))
                 running = false;
             });
         };
-        obj.addEventListener(type, func);
+        obj.addEventListener(type, func)
     };
 
-    throttle('resize', 'optimizedResize');
-})()
+    throttle('resize', 'optimizedResize')
+}
