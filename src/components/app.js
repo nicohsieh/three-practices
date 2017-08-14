@@ -1,9 +1,11 @@
-import { h, Component } from 'preact';
-import { Router } from 'preact-router';
+import { h, Component } from 'preact'
+import { Router } from 'preact-router'
 
-import Header from './header';
-import Home from '../routes/home';
-import Profile from '../routes/profile';
+import Header from './header'
+import Home from '../routes/home'
+import Profile from '../routes/profile'
+import ParticleFace from '../routes/particle-face'
+
 // import Home from 'async!./home';
 // import Profile from 'async!./profile';
 
@@ -24,6 +26,7 @@ export default class App extends Component {
 					<Home path="/" />
 					<Profile path="/profile/" user="me" />
 					<Profile path="/profile/:user" />
+					<ParticleFace path='/particle-face' />
 				</Router>
 			</div>
 		);
