@@ -5,11 +5,14 @@ import {
 	Points,
 	Vector3
 } from 'three'
+import { loadTextures } from '../../utils/TextureLoader'
 import ThreeContainer from '../../components/three-container'
 import frag from './shaders/frag.glsl'
 import vert from './shaders/vert.glsl'
 
 import style from './style.scss'
+
+const texturePath = '/assets/images/face.jpg'
 
 export default class ParticleFace extends Component {
 
@@ -18,13 +21,15 @@ export default class ParticleFace extends Component {
 
 		this.zPlanePos = -70
 		this.shaderMaterial = null
+		this.inited = false
 	}
 
 	componentDidMount() {
-		this.init()
+		loadTextures([texturePath])
+			.then(this.init)
 	}
 
-	init() {
+	init = (textures) => {
 		let pointGeometry = new Geometry()
 	  let colNum = 200
 	  let rowNum = 100
@@ -42,7 +47,10 @@ export default class ParticleFace extends Component {
 
 	  this.shaderMaterial = new ShaderMaterial({
 	  	uniforms: {
-
+	  		time: {value: 0.0},
+	  		point: {value: new Vector3(0.5, 0.5, this.zPlanePos)},
+	  		texture: {type: 't', value: textures[texturePath]},
+	  		strength: {type: 'f', value: 0.5}
 	  	},
 	  	vertexShader: vert,
 	  	fragmentShader: frag
@@ -50,10 +58,14 @@ export default class ParticleFace extends Component {
 
 	  let points = new Points(pointGeometry, this.shaderMaterial)
 	  this.threeContainer.scene.add(points)
+
+	  this.inited = true
 	}
 
 	animate() {
-
+		if (!this.inited) {
+			return
+		}
 	}
 
 	render() {

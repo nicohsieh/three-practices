@@ -1,6 +1,6 @@
 {
-  "name": "Preact PWA",
-  "short_name": "Preact PWA",
+  "name": "Three.js Practices",
+  "short_name": "Three.js Practices",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",

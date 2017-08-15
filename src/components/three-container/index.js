@@ -47,10 +47,11 @@ export default class ThreeContainer extends Component {
 	}
 
 	componentWillUnmount() {
+
 		this.scene = null
 		this.camera = null
 		this.renderer = null
-
+		
 		window.removeEventListener('optimizedResize', this.onResize)
 
 		if ('ontouchstart' in window) {
@@ -99,6 +100,10 @@ export default class ThreeContainer extends Component {
 
 
 	animate = () => {
+		if (!this.renderer) {
+			return 
+		}
+		
 		this.renderer.render(this.scene, this.camera)
 		this.frameCount++
 		this.actionMoving = false
