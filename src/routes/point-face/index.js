@@ -47,7 +47,9 @@ export default class ParticleFace extends Component {
 
 	  this.shaderMaterial = new ShaderMaterial({
 	  	uniforms: {
+	  		mode: {value: 2.0},
 	  		time: {value: 0.0},
+	  		size: {value: 0.007},
 	  		point: {value: new Vector3(0.5, 0.5, this.zPlanePos)},
 	  		texture: {type: 't', value: textures[texturePath]},
 	  		strength: {type: 'f', value: 0.5}
@@ -57,7 +59,7 @@ export default class ParticleFace extends Component {
 	  })
 
 	  let points = new Points(pointGeometry, this.shaderMaterial)
-	  this.threeContainer.scene.add(points)
+	  this.container.scene.add(points)
 
 	  this.inited = true
 	}
@@ -66,16 +68,30 @@ export default class ParticleFace extends Component {
 		if (!this.inited) {
 			return
 		}
+		const actionPos = this.container.actionPos
+		let uniforms = this.shaderMaterial.uniforms
+		uniforms.time.value += 0.02
+		uniforms.point.value.x = actionPos.x
+		uniforms.point.value.y = actionPos.y
+
+		if (uniforms.strength.value < 2 && this.container.actionMoving) {
+			uniforms.strength.value += 0.2
+		}
+
+		if (uniforms.strength.value > 0.2 && !this.container.actionMoving) {
+			const amt = (0.2 - uniforms.strength.value) * 0.9
+			uniforms.strength.value += Math.max(-0.08, amt)
+		}
 	}
 
 	render() {
 		return (
 			<div class={style['particle-face']}>
-				<h1>Particle FACE!</h1>
 				<ThreeContainer 
-					ref={el => this.threeContainer = el}
+					ref={el => this.container = el}
 					actionZPos={this.zPlanePos} cameraZPos={1}
-					customAnimate={this.animate}
+					activeFrameDelay={1}
+					customAnimate={() => {this.animate()}}
 				/>
 			</div>
 		);

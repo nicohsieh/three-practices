@@ -14,13 +14,15 @@ export default class ThreeContainer extends Component {
 	constructor(props) {
 		super(props)
 
-		this.zPos = props.actionZPos
 		this.cameraZPos = props.cameraZPos
 
 		this.actionZPos = props.actionZPos
 		this.actionPos = new Vector3()
 		this.actionMoving = false
 		this.activeFrame = -1000
+
+		this.activeFrameDelay = props.activeFrameDelay
+
 		this.frameCount = 0
 	}
 
@@ -92,9 +94,9 @@ export default class ThreeContainer extends Component {
 		this.actionPos = this.camera.position.clone()
 		this.actionPos.add(dir.multiplyScalar(dist))
 
-		const amt = this.zPos / dir.z
+		const amt = this.actionZPos / dir.z
 		this.actionPos.add(dir.multiplyScalar(amt))
-
+		this.actionMoving = true
 		this.activeFrame = this.frameCount
 	}
 
@@ -106,7 +108,9 @@ export default class ThreeContainer extends Component {
 		
 		this.renderer.render(this.scene, this.camera)
 		this.frameCount++
-		this.actionMoving = false
+		if (this.frameCount - this.activeFrame > this.activeFrameDelay) {
+			this.actionMoving = false
+		}
 		if (this.props.customAnimate) {
 			this.props.customAnimate()
 		}
