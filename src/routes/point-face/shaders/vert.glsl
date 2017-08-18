@@ -6,6 +6,7 @@ uniform float strength;
 varying vec2 vXy;
 varying float colorMut1;
 varying float colorMut2;
+varying float colorMut3;
 
 float mod289(float x){return x - floor(x * (1.0 / 289.0)) * 289.0;}
 vec4 mod289(vec4 x){return x - floor(x * (1.0 / 289.0)) * 289.0;}
@@ -37,6 +38,7 @@ void main() {
 	vXy = vec2(position);
 	colorMut1 = 0.;
 	colorMut2 = 0.;
+	colorMut3 = 0.;
 
 	vec3 newPos = vec3(position);
 
@@ -45,23 +47,30 @@ void main() {
 		newPos.y += sin(time + position.x * 0.1) * 1.;
 
 		float dist = 6. - distance(newPos, point) + mix(0., 3., strength) * 2.7;
-	 
+	 	
+	 	float pointSize = smoothstep(0., 13., dist) * 2.;
 		float size = smoothstep(0., 13., dist);
-		newPos.z += (size - 0.6) * 13.;
+		newPos.z += size * 13.;
 
 		colorMut1 = size * sin(time);
 		colorMut2 = size * cos(time * 1.2 + 0.3);
 
 		gl_Position = projectionMatrix * modelViewMatrix * vec4(newPos, 1.0);
-		gl_PointSize = 3.;
+		gl_PointSize = pointSize + 2.;
 
 	} else if (mode == 1.0) {
-		newPos.x += sin(time + position.y * 0.1) * .6 * mod(newPos.y, 10.);
-		newPos.y += sin(time + position.x * 0.1) * 1. + sin( abs(newPos.y / 10.) + 0.2);
-		newPos.z += sin(time * 0.4 + position.x * 0.1) * 5.;
+		float rowHeight = 10.;
+		float actionRow = floor(point.y / rowHeight);
+		float pixelRow = floor(newPos.y / rowHeight);
+		float adj = 1.;
+		if (actionRow == pixelRow) {
+			adj = strength;
+		 	colorMut2 = strength * 0.5;
+		}
+		newPos.x += sin(time * adj + position.y * 0.1 * adj) * .6 * mod(newPos.y, rowHeight) * adj;
+		newPos.y += sin(time + position.x * 0.1 * adj) * 1. + sin(pixelRow * adj + 0.2);
+		newPos.z += sin(time * 0.4 + position.x * 0.1) * 5. * smoothstep(adj, 0., 4.) + adj*5.;
 
-		float dist = 20. - distance(newPos, point);
-	
 		gl_Position = projectionMatrix * modelViewMatrix * vec4(newPos, 1.0);
 		gl_PointSize = 2.;
 
@@ -80,6 +89,7 @@ void main() {
 	
 		colorMut1 = amt * sin(time);
 		colorMut2 = amt * cos(time * 1.2 + 0.3);
+		colorMut3 = amt * cos(time * 0.8);
 
 		if (strength > 3.0) {
 			newPos.z += amt * (strength - 3.) * 25.;
@@ -87,5 +97,22 @@ void main() {
 		
 		gl_Position = projectionMatrix * modelViewMatrix * vec4(newPos, 1.0);
 		gl_PointSize = 2.;
+
+	} else if (mode == 3.0) {
+
+		float colWid = 10.;
+		float actionCol = floor(point.x / colWid);
+		float pixelCol = floor(newPos.x / colWid);
+		float adj = 1.;
+		if (actionCol == pixelCol) {
+			adj = strength;
+		 	colorMut1 = strength * 0.3;
+		}
+		newPos.x += sin(time + pixelCol + position.y * 0.3) * (.4 + adj * 0.3);
+		newPos.y += sin(time + pixelCol * 2.) * 1.;
+		newPos.z += sin(time * 0.4 + position.x * 0.08) * 3. + adj * 5.;
+
+		gl_Position = projectionMatrix * modelViewMatrix * vec4(newPos, 1.0);
+		gl_PointSize = 1.5 + adj * 1.5;
 	}
 }

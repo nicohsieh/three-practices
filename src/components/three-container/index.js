@@ -1,3 +1,4 @@
+import { h, Component } from 'preact'
 import {
 	Scene,
 	Camera,
@@ -5,7 +6,7 @@ import {
 	PerspectiveCamera,
 	Vector3
 } from 'three'
-import { h, Component } from 'preact'
+// import * as dat from 'dat.gui/build/dat.gui'
 
 import style from './style.scss'
 
