@@ -6,6 +6,7 @@ import Header from './header'
 import Home from '../routes/home'
 import Profile from '../routes/profile'
 import PointFace from '../routes/point-face'
+import Tunnel from '../routes/tunnel'
 
 // import Home from 'async!./home';
 // import Profile from 'async!./profile';
@@ -32,6 +33,7 @@ export default class App extends Component {
 					<Profile path="/profile/" user="me" />
 					<Profile path="/profile/:user" />
 					<PointFace path='/point-face' />
+					<Tunnel path='/tunnel' />
 				</Router>
 			</div>
 		);

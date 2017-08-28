@@ -9,6 +9,7 @@ export default class Header extends Component {
 				<nav>
 					<Link class={style.title} href="/">WebGL Practices</Link>
 					<Link activeClassName={style.active} href="/point-face">Point Face</Link>
+					<Link activeClassName={style.active} href="/tunnel">Tunnel</Link>
 				</nav>
 			</header>
 		);
