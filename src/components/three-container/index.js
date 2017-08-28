@@ -4,7 +4,8 @@ import {
 	Camera,
 	WebGLRenderer,
 	PerspectiveCamera,
-	Vector3
+	Vector3,
+	Vector2
 } from 'three'
 // import * as dat from 'dat.gui/build/dat.gui'
 
@@ -18,7 +19,8 @@ export default class ThreeContainer extends Component {
 		this.cameraZPos = props.cameraZPos
 
 		this.actionZPos = props.actionZPos
-		this.actionPos = new Vector3()
+		this.mousePos = new Vector3()
+		this.actionPos = new Vector2()
 		this.actionMoving = false
 		this.activeFrame = -1000
 
@@ -83,6 +85,10 @@ export default class ThreeContainer extends Component {
 	}
 
 	updateActionPos(x, y, z) {
+
+		this.mousePos.x = x
+		this.mousePos.y = y
+
 		let vec = new Vector3()
   	vec.x = (x / window.innerWidth) * 2 - 1
 		vec.y = -(y / window.innerHeight) * 2 + 1
