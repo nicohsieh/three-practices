@@ -1,10 +1,11 @@
 import { h, Component } from 'preact'
 import {
-	TextureLoader,
+	Geometry,
 	CatmullRomCurve3,
 	TubeBufferGeometry,
 	ShaderMaterial,
 	MeshLambertMaterial,
+	PointsMaterial,
 	Mesh,
 	BackSide,
 	Points,
@@ -12,7 +13,9 @@ import {
 	Vector3,
 	PointLight,
 	FaceColors,
-	RepeatWrapping
+	RepeatWrapping,
+	Math as ThreeMath
+
 } from 'three'
 import { loadTextures } from '../../utils/TextureLoader'
 import ThreeContainer from '../../components/three-container'
@@ -21,12 +24,13 @@ import style from './style.scss'
 
 const hasOrientation = (typeof window.orientation !== 'undefined')
 const texturePath = '/assets/images/stars2.jpg'
+const starPath = '/assets/images/purple.png'
 const points = [
   [68.5,185.5],
   [1,262.5],
   [270.9,281.9],
-  // [345.5,212.8],
-  // [178,155.7],
+  [345.5,212.8],
+  [178,155.7],
   [240.3,72.3],
   [153.4,0.6],
   [52.6,53.3],
@@ -55,7 +59,7 @@ export default class Tunnel extends Component {
 	}
 
 	componentDidMount() {
-		loadTextures([texturePath])
+		loadTextures([texturePath, starPath])
 			.then(this.init)
 
 		if (hasOrientation) {
@@ -94,9 +98,29 @@ export default class Tunnel extends Component {
 		})
 		this.tube = new Mesh(geometry, material)
 
+		let starsGeometry = new Geometry()
+
+		for (let i = 0; i < 1000; i ++) {
+
+			var star = new Vector3()
+			star.x = ThreeMath.randFloat(1, 240)
+			star.y = ThreeMath.randFloat(-3, 3)
+			star.z = ThreeMath.randFloat(0, 300)
+
+			starsGeometry.vertices.push( star )
+		}
+
+		let starsMaterial = new PointsMaterial({
+			map: textures[starPath],
+			size: 0.5,
+			transparent: true
+		})
+		let starField = new Points( starsGeometry, starsMaterial )
+
 		this.light = new PointLight(0xc1f5ff, 1, 50)
 
 		this.container.scene.add(this.tube)
+		this.container.scene.add(starField)
 		this.container.scene.add(this.light)
 
 	  this.inited = true
@@ -115,6 +139,7 @@ export default class Tunnel extends Component {
 		}
 		this.movementPerc += 0.0003
 		const cameraPos = this.path.getPointAt(this.movementPerc % 1)
+		// console.log(cameraPos)
 		const lightPos = this.path.getPointAt((this.movementPerc + 0.005) % 1)
 		this.container.camera.position.set(cameraPos.x,cameraPos.y,cameraPos.z)
 
