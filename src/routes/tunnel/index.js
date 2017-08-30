@@ -14,6 +14,7 @@ import {
 	PointLight,
 	FaceColors,
 	RepeatWrapping,
+	Fog,
 	Math as ThreeMath
 
 } from 'three'
@@ -24,15 +25,15 @@ import style from './style.scss'
 
 const hasOrientation = (typeof window.orientation !== 'undefined')
 const texturePath = '/assets/images/stars2.jpg'
-const starPath = '/assets/images/purple.png'
+const starPath = '/assets/images/white.png'
 const points = [
   [68.5,185.5],
   [1,262.5],
   [270.9,281.9],
-  [345.5,212.8],
+  // [345.5,212.8],
   [178,155.7],
   [240.3,72.3],
-  [153.4,0.6],
+  // [153.4,0.6],
   [52.6,53.3],
   [68.5,185.5]
 ]
@@ -46,7 +47,7 @@ export default class Tunnel extends Component {
 			mode: 0.0
 		}
 
-		this.zPlanePos = -50
+		this.zPlanePos = 350
 		this.inited = false
 		this.totalMode = 4
 
@@ -75,6 +76,8 @@ export default class Tunnel extends Component {
 	}
 
 	init = (textures) => {
+
+		this.container.scene.fog = new Fog(0x0c0016, 1, 40 )
 		
 		for (var i = 0; i < points.length; i++) {
 		  var x = points[i][0]
@@ -87,10 +90,14 @@ export default class Tunnel extends Component {
 
 		// TubeBufferGeometry(path, tubularSegments, radius, radiusSegments, closed)
 		let texture = textures[texturePath]
-		texture.RepeatWrapping = true
-		const geometry = new TubeBufferGeometry(this.path, 84, 3, 12, true)
+		// texture.RepeatWrapping = true
+		texture.wrapS = texture.wrapT = RepeatWrapping
+    texture.offset.set(0, 0)
+    texture.repeat.set(10, 1)
+
+		const geometry = new TubeBufferGeometry(this.path, 84, 2, 12, true)
 		const material = new MeshLambertMaterial({
-			color: 0xc4d0ff,
+			color: 0x2c0151,//0xc4d0ff,
 			// color: 0xffffff,
 			// emissive: 0x0a2451,
 		  side : BackSide,
@@ -99,20 +106,24 @@ export default class Tunnel extends Component {
 		this.tube = new Mesh(geometry, material)
 
 		let starsGeometry = new Geometry()
+		const totalSteps = 100
+		for (let k = 0; k < totalSteps; k++) {
+			const point = this.path.getPointAt(k / totalSteps)
+			for (let i = 0; i < 80; i ++) {
 
-		for (let i = 0; i < 1000; i ++) {
+				var star = new Vector3()
+				star.x = ThreeMath.randFloat(-3, 3) + point.x
+				star.y = ThreeMath.randFloat(-3, 3) + point.y
+				star.z = ThreeMath.randFloat(-9, 9) + point.z
 
-			var star = new Vector3()
-			star.x = ThreeMath.randFloat(1, 240)
-			star.y = ThreeMath.randFloat(-3, 3)
-			star.z = ThreeMath.randFloat(0, 300)
-
-			starsGeometry.vertices.push( star )
+				starsGeometry.vertices.push( star )
+			}
 		}
+
 
 		let starsMaterial = new PointsMaterial({
 			map: textures[starPath],
-			size: 0.5,
+			size: 0.2,
 			transparent: true
 		})
 		let starField = new Points( starsGeometry, starsMaterial )
@@ -137,16 +148,15 @@ export default class Tunnel extends Component {
 		if (!this.inited) {
 			return
 		}
-		this.movementPerc += 0.0003
+		this.movementPerc += 0.0001
 		const cameraPos = this.path.getPointAt(this.movementPerc % 1)
 		// console.log(cameraPos)
 		const lightPos = this.path.getPointAt((this.movementPerc + 0.005) % 1)
-		this.container.camera.position.set(cameraPos.x,cameraPos.y,cameraPos.z)
-
 		let lookAtPos = lightPos.clone()
 		lookAtPos.x += this.cameraRotation.x
 		lookAtPos.y += this.cameraRotation.y
 
+		this.container.camera.position.set(cameraPos.x,cameraPos.y,cameraPos.z)
 		this.container.camera.lookAt(lookAtPos)
 
   	this.light.position.set(lightPos.x, lightPos.y, lightPos.z)
