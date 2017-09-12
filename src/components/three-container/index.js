@@ -34,7 +34,7 @@ export default class ThreeContainer extends Component {
 		this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
 		this.renderer = new WebGLRenderer({
 			canvas: this.canvas,
-			antialias: true
+			antialias: true,
 		})
 		this.renderer.setSize(window.innerWidth, window.innerHeight)
 
