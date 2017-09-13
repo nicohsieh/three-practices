@@ -170,7 +170,7 @@ export default class Tunnel extends Component {
 
   	for(let i = 0; i < this.starsGeometry.vertices.length; i++) {
   		const item = this.starsGeometry.vertices[i]
-  		const val = sinLookUp(frameCount * 0.008 + i * 0.3) * 0.1
+  		const val = sinLookUp(frameCount * 0.006 + i * 0.3) * 0.1
   		item.z += val
   	}
 
