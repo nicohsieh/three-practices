@@ -6,7 +6,7 @@ import {
 	Vector3
 } from 'three'
 import { sineOut } from 'eases'
-import { loadTextures } from '../../utils/TextureLoader'
+import { loadTextures } from '../../utils/textureLoader'
 import ThreeContainer from '../../components/three-container'
 import frag from './shaders/frag.glsl'
 import vert from './shaders/vert.glsl'
