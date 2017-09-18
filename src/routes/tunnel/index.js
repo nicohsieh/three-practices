@@ -24,18 +24,19 @@ import style from './style.scss'
 
 const hasOrientation = (typeof window.orientation !== 'undefined')
 const tubePath = '/assets/images/swirl.jpg'
-const iconPaths = [
-	'/assets/images/mint.png',
-	'/assets/images/burger.png',
-	'/assets/images/doge.png',
-	'/assets/images/donut.png',
-	'/assets/images/heart.png',
-	'/assets/images/pizza.png',
-	'/assets/images/scream.png',
-	'/assets/images/taco.png',
-	'/assets/images/dildo1.png',
-	'/assets/images/dildo2.png'
-]
+const iconWeight = {
+	'/assets/images/mint.png': 1.5,
+	'/assets/images/burger.png': 1,
+	'/assets/images/doge.png': 1,
+	'/assets/images/donut.png': 1,
+	'/assets/images/heart.png': 1.5,
+	'/assets/images/pizza.png': 1,
+	'/assets/images/scream.png': 1,
+	'/assets/images/taco.png': 1,
+	'/assets/images/dildo1.png': 0.3,
+	'/assets/images/dildo2.png': 0.2,
+}
+const defaultIcon = '/assets/images/mint.png'
 
 // chocolate 
 // repeateive in different ways
@@ -59,10 +60,16 @@ export default class Tunnel extends Component {
 		this.shaderMaterial = null
 		this.light = null
 		this.cameraRotation = new Vector2(0, 0)
+		this.iconPathsToLoad = this.getIconPathsToLoad()
+		this.iconWeightMap = this.getIconWeightMap()
+
+		const lastIndex = this.iconWeightMap.length - 1
+		this.iconMapMax = this.iconWeightMap[lastIndex].max
+		this.lastSelectedIcon = null
 	}
 
 	componentDidMount() {
-		loadTextures([tubePath, ...iconPaths])
+		loadTextures([tubePath, ...this.iconPathsToLoad])
 			.then(this.init)
 
 		if (hasOrientation) {
@@ -78,6 +85,46 @@ export default class Tunnel extends Component {
 			window.removeEventListener('deviceorientation', this.handleOrientation)
 		} else {
 			document.addEventListener('mousemove', this.handleMouseMove)
+		}
+	}
+
+	getIconPathsToLoad() {
+		let icons = []
+		Object.keys(iconWeight).forEach((name) => {
+			icons.push(name)
+		})
+		return icons
+	}
+
+	getIconWeightMap() {
+		let icons = []
+		let max = 0
+		Object.keys(iconWeight).forEach((name) => {
+			max += iconWeight[name]
+			icons.push({
+				path: name,
+				max				
+			})
+		})
+		console.log(icons)
+		return icons
+	}
+
+	getRandomIcon() {
+		const rnd = Math.random() * this.iconMapMax
+		console.log('%c'+rnd, 'color: purple; font-size: 13px;')
+		for(let i = 0; i < this.iconWeightMap.length; i++) {
+			const item = this.iconWeightMap[i]
+			if (rnd <= item.max) {
+				if (item.path !== this.lastSelectIcon) {
+					this.lastSelectedIcon = item.path
+					return this.textures[this.lastSelectedIcon]
+				} else {
+					const index = (i + 1) % this.iconWeightMap.length
+					this.lastSelectedIcon = this.iconWeightMap[index].path
+					return this.textures[this.lastSelectedIcon]
+				}
+			}
 		}
 	}
 
@@ -119,10 +166,8 @@ export default class Tunnel extends Component {
 			}
 		}
 
-		const iconPath = iconPaths[ThreeMath.randInt(0, iconPaths.length - 1)]
-
 		this.iconMaterial = new PointsMaterial({
-			map: textures[iconPath],
+			map: this.textures[defaultIcon],
 			alphaTest: 0.1,
 			color: 0xf4d0f2,
 			size: 0.6,
@@ -180,8 +225,8 @@ export default class Tunnel extends Component {
 		const lightPos = this.path.getPointAt((this.movementPerc + 0.005) % 1)
 		let lookAtPos = lightPos.clone()
 		// the rotation should be according to cameraPos <-> lookAtPos axis
-		lookAtPos.x += this.cameraRotation.x
-		lookAtPos.y += this.cameraRotation.y
+		// lookAtPos.x += this.cameraRotation.x
+		// lookAtPos.y += this.cameraRotation.y
 
 		this.container.camera.position.set(cameraPos.x,cameraPos.y,cameraPos.z)
 		this.container.camera.lookAt(lookAtPos)
@@ -210,8 +255,7 @@ export default class Tunnel extends Component {
 		if (!this.inited) {
 			return
 		}
-		const iconPath = iconPaths[ThreeMath.randInt(0, iconPaths.length - 1)]
-		this.iconMaterial.map = this.textures[iconPath]
+		this.iconMaterial.map = this.getRandomIcon()
 	}
 
 	render(props, states) {
