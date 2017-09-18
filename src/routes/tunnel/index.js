@@ -24,12 +24,13 @@ import style from './style.scss'
 
 const hasOrientation = (typeof window.orientation !== 'undefined')
 const tubePath = '/assets/images/swirl.jpg'
+const burstIconPath = '/assets/images/heart.png'
 const iconWeight = {
 	'/assets/images/mint.png': 1.5,
 	'/assets/images/burger.png': 1,
 	'/assets/images/doge.png': 1,
 	'/assets/images/donut.png': 1,
-	'/assets/images/heart.png': 1.5,
+	'/assets/images/in-love.png': 1.5,
 	'/assets/images/pizza.png': 1,
 	'/assets/images/scream.png': 1,
 	'/assets/images/taco.png': 1,
@@ -38,8 +39,9 @@ const iconWeight = {
 }
 const defaultIcon = '/assets/images/mint.png'
 
-// chocolate 
 // repeateive in different ways
+// resize images
+// clean up after burst
 
 export default class Tunnel extends Component {
 
@@ -65,10 +67,12 @@ export default class Tunnel extends Component {
 		const lastIndex = this.iconWeightMap.length - 1
 		this.iconMapMax = this.iconWeightMap[lastIndex].max
 		this.lastSelectedIcon = null
+
+		this.bursts = []
 	}
 
 	componentDidMount() {
-		loadTextures([tubePath, ...this.iconPathsToLoad])
+		loadTextures([tubePath, burstIconPath, ...this.iconPathsToLoad])
 			.then(this.init)
 
 		if (hasOrientation) {
@@ -154,12 +158,12 @@ export default class Tunnel extends Component {
 			const max = Math.random() * 30 + 40
 			for (let i = 0; i < max; i ++) {
 				// console.log(point)
-				var star = new Vector3()
-				star.x = point.x + ThreeMath.randFloat(-1.8, 1.8)
-				star.y = point.y + ThreeMath.randFloat(-1.8, 1.8) + 1
-				star.z = point.z + ThreeMath.randFloat(-10, 10)
+				let icon = new Vector3()
+				icon.x = point.x + ThreeMath.randFloat(-1.8, 1.8)
+				icon.y = point.y + ThreeMath.randFloat(-1.8, 1.8) + 1
+				icon.z = point.z + ThreeMath.randFloat(-10, 10)
 
-				this.iconGeometry.vertices.push( star )
+				this.iconGeometry.vertices.push(icon)
 			}
 		}
 
@@ -182,6 +186,31 @@ export default class Tunnel extends Component {
 	  this.inited = true
 	}
 
+	burst() {
+		const center = this.path.getPointAt((this.movementPerc + 0.008) % 1)
+		const range = 1
+		let burstGeometry = new Geometry()
+		for (let i = 0; i < 30; i++) {
+			let icon = new Vector3()
+			icon.x = center.x + ThreeMath.randFloat(-range, range)
+			icon.y = center.y + ThreeMath.randFloat(-range, range)
+			icon.z = center.z + ThreeMath.randFloat(-range, range)
+
+			burstGeometry.vertices.push(icon)
+		}
+
+		let burstMaterial = new PointsMaterial({
+			map: this.textures[burstIconPath],
+			alphaTest: 0.1,
+			color: 0xf4d0f2,
+			size: 0.4,
+			transparent: true,
+		})
+
+		let burst = new Points(burstGeometry, burstMaterial)
+		this.container.scene.add(burst)
+	}
+
 	rgb2hex(r, g, b) {
 		let c1 = r.toString(16)
 		let str = '0x'
@@ -194,6 +223,14 @@ export default class Tunnel extends Component {
 			}
 		}
 		return str
+	}
+	
+	switchMode = () => {
+		if (!this.inited) {
+			return
+		}
+		this.iconMaterial.map = this.getRandomIcon()
+		this.burst()
 	}
 
 	handleMouseMove = (e) => {
@@ -246,13 +283,6 @@ export default class Tunnel extends Component {
   	}
 
   	this.iconGeometry.verticesNeedUpdate = true
-	}
-
-	switchMode = () => {
-		if (!this.inited) {
-			return
-		}
-		this.iconMaterial.map = this.getRandomIcon()
 	}
 
 	render(props, states) {
