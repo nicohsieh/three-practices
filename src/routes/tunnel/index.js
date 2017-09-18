@@ -50,7 +50,6 @@ export default class Tunnel extends Component {
 			mode: 0.0
 		}
 
-		this.zPlanePos = 350
 		this.inited = false
 		this.totalMode = 4
 
@@ -106,13 +105,11 @@ export default class Tunnel extends Component {
 				max				
 			})
 		})
-		console.log(icons)
 		return icons
 	}
 
 	getRandomIcon() {
 		const rnd = Math.random() * this.iconMapMax
-		console.log('%c'+rnd, 'color: purple; font-size: 13px;')
 		for(let i = 0; i < this.iconWeightMap.length; i++) {
 			const item = this.iconWeightMap[i]
 			if (rnd <= item.max) {
@@ -269,9 +266,9 @@ export default class Tunnel extends Component {
 				</p>
 				<ThreeContainer 
 					ref={el => this.container = el}
-					actionZPos={this.zPlanePos} cameraZPos={1}
+					cameraZPos={1}
 					activeFrameDelay={1}
-					customAnimate={() => {this.animate()}}
+					animate={() => {this.animate()}}
 				/>
 			</div>
 		)
