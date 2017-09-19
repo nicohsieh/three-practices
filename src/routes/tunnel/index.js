@@ -200,7 +200,7 @@ export default class Tunnel extends Component {
 		}
 
 		let burstMaterial = new PointsMaterial({
-			map: this.textures[burstIconPath],
+			map: this.textures[this.lastSelectedIcon],
 			alphaTest: 0.1,
 			color: 0xf4d0f2,
 			size: 0.4,
@@ -209,6 +209,12 @@ export default class Tunnel extends Component {
 
 		let burst = new Points(burstGeometry, burstMaterial)
 		this.container.scene.add(burst)
+
+		setTimeout(() => {
+			this.container.scene.remove(burst)
+			burstGeometry.dispose()
+			burstMaterial.dispose()
+		}, 1000)
 	}
 
 	rgb2hex(r, g, b) {

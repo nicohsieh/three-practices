@@ -18,8 +18,6 @@ export default class ThreeContainer extends Component {
 
 		this.cameraZPos = props.cameraZPos
 
-		this.actionZPos = props.actionZPos
-		
 		this.actionMoving = false
 		this.activeFrame = -1000
 
