@@ -23,11 +23,25 @@ import { sinLookUp } from '../../utils/sinLookUp'
 import style from './style.scss'
 
 const hasOrientation = (typeof window.orientation !== 'undefined')
-const texturePath = '/assets/images/swirl.jpg'
-const starPath = '/assets/images/mint.png'
+const tubePath = '/assets/images/swirl.jpg'
+const burstIconPath = '/assets/images/heart.png'
+const iconWeight = {
+	'/assets/images/mint.png': 1.5,
+	'/assets/images/burger.png': 1,
+	'/assets/images/doge.png': 1,
+	'/assets/images/donut.png': 1,
+	'/assets/images/in-love.png': 1.5,
+	'/assets/images/pizza.png': 1,
+	'/assets/images/scream.png': 1,
+	'/assets/images/taco.png': 1,
+	'/assets/images/dildo1.png': 0.3,
+	'/assets/images/dildo2.png': 0.2,
+}
+const defaultIcon = '/assets/images/mint.png'
 
-// chocolate 
 // repeateive in different ways
+// resize images
+// clean up after burst
 
 export default class Tunnel extends Component {
 
@@ -38,7 +52,6 @@ export default class Tunnel extends Component {
 			mode: 0.0
 		}
 
-		this.zPlanePos = 350
 		this.inited = false
 		this.totalMode = 4
 
@@ -48,14 +61,24 @@ export default class Tunnel extends Component {
 		this.shaderMaterial = null
 		this.light = null
 		this.cameraRotation = new Vector2(0, 0)
+		this.iconPathsToLoad = this.getIconPathsToLoad()
+		this.iconWeightMap = this.getIconWeightMap()
+
+		const lastIndex = this.iconWeightMap.length - 1
+		this.iconMapMax = this.iconWeightMap[lastIndex].max
+		this.lastSelectedIcon = null
+
+		this.bursts = []
 	}
 
 	componentDidMount() {
-		loadTextures([texturePath, starPath])
+		loadTextures([tubePath, burstIconPath, ...this.iconPathsToLoad])
 			.then(this.init)
 
 		if (hasOrientation) {
 			window.addEventListener('deviceorientation', this.handleOrientation, true)
+		} else {
+			document.addEventListener('mousemove', this.handleMouseMove)
 		}
 		// this.init()
 	}
@@ -63,16 +86,57 @@ export default class Tunnel extends Component {
 	componentWillUnmount() {
 		if (hasOrientation) {
 			window.removeEventListener('deviceorientation', this.handleOrientation)
+		} else {
+			document.addEventListener('mousemove', this.handleMouseMove)
+		}
+	}
+
+	getIconPathsToLoad() {
+		let icons = []
+		Object.keys(iconWeight).forEach((name) => {
+			icons.push(name)
+		})
+		return icons
+	}
+
+	getIconWeightMap() {
+		let icons = []
+		let max = 0
+		Object.keys(iconWeight).forEach((name) => {
+			max += iconWeight[name]
+			icons.push({
+				path: name,
+				max				
+			})
+		})
+		return icons
+	}
+
+	getRandomIcon() {
+		const rnd = Math.random() * this.iconMapMax
+		for(let i = 0; i < this.iconWeightMap.length; i++) {
+			const item = this.iconWeightMap[i]
+			if (rnd <= item.max) {
+				if (item.path !== this.lastSelectIcon) {
+					this.lastSelectedIcon = item.path
+					return this.textures[this.lastSelectedIcon]
+				} else {
+					const index = (i + 1) % this.iconWeightMap.length
+					this.lastSelectedIcon = this.iconWeightMap[index].path
+					return this.textures[this.lastSelectedIcon]
+				}
+			}
 		}
 	}
 
 	init = (textures) => {
 
+		this.textures = textures
 		this.container.scene.fog = new Fog(0x080026, 1, 80)
 		
 		this.path = new KnotCurve()
-	
-		let texture = textures[texturePath]
+		
+		let texture = textures[tubePath]
 		// texture.RepeatWrapping = true
 		texture.wrapS = texture.wrapT = RepeatWrapping
     texture.repeat.set(3, 5)
@@ -87,39 +151,64 @@ export default class Tunnel extends Component {
 		})
 		this.tube = new Mesh(geometry, material)
 
-		this.starsGeometry = new Geometry()
+		this.iconGeometry = new Geometry()
 		const totalSteps = 60
 		for (let k = 0; k < totalSteps; k++) {
 			const point = this.path.getPointAt(k / totalSteps)
 			const max = Math.random() * 30 + 40
 			for (let i = 0; i < max; i ++) {
 				// console.log(point)
-				var star = new Vector3()
-				star.x = point.x + ThreeMath.randFloat(-1.8, 1.8)
-				star.y = point.y + ThreeMath.randFloat(-1.8, 1.8) + 1
-				star.z = point.z + ThreeMath.randFloat(-10, 10)
+				let icon = new Vector3()
+				icon.x = point.x + ThreeMath.randFloat(-1.8, 1.8)
+				icon.y = point.y + ThreeMath.randFloat(-1.8, 1.8) + 1
+				icon.z = point.z + ThreeMath.randFloat(-10, 10)
 
-				this.starsGeometry.vertices.push( star )
+				this.iconGeometry.vertices.push(icon)
 			}
 		}
 
-		let starsMaterial = new PointsMaterial({
-			map: textures[starPath],
+		this.iconMaterial = new PointsMaterial({
+			map: this.textures[defaultIcon],
 			alphaTest: 0.1,
 			color: 0xf4d0f2,
 			size: 0.6,
 			transparent: true,
 		})
 
-		let starField = new Points(this.starsGeometry, starsMaterial)
+		let icons = new Points(this.iconGeometry, this.iconMaterial)
 
 		this.light = new PointLight(0xc1f5ff, 1, 50)
 
 		this.container.scene.add(this.tube)
-		this.container.scene.add(starField)
+		this.container.scene.add(icons)
 		this.container.scene.add(this.light)
 
 	  this.inited = true
+	}
+
+	burst() {
+		const center = this.path.getPointAt((this.movementPerc + 0.008) % 1)
+		const range = 1
+		let burstGeometry = new Geometry()
+		for (let i = 0; i < 30; i++) {
+			let icon = new Vector3()
+			icon.x = center.x + ThreeMath.randFloat(-range, range)
+			icon.y = center.y + ThreeMath.randFloat(-range, range)
+			icon.z = center.z + ThreeMath.randFloat(-range, range)
+
+			burstGeometry.vertices.push(icon)
+		}
+
+		let burstMaterial = new PointsMaterial({
+			map: this.textures[burstIconPath],
+			alphaTest: 0.1,
+			color: 0xf4d0f2,
+			size: 0.4,
+			transparent: true,
+		})
+
+		let burst = new Points(burstGeometry, burstMaterial)
+		this.container.scene.add(burst)
 	}
 
 	rgb2hex(r, g, b) {
@@ -134,6 +223,24 @@ export default class Tunnel extends Component {
 			}
 		}
 		return str
+	}
+	
+	switchMode = () => {
+		if (!this.inited) {
+			return
+		}
+		this.iconMaterial.map = this.getRandomIcon()
+		this.burst()
+	}
+
+	handleMouseMove = (e) => {
+		const halfWinW = window.innerWidth * 0.5
+		
+		const x = (e.clientX - halfWinW) / halfWinW 
+		const y = (e.clientY - halfWinW) / halfWinW
+		// console.log(x, y)
+		this.cameraRotation.x = x
+		this.cameraRotation.y = y
 	}
 
 	handleOrientation = (e) => {
@@ -151,8 +258,9 @@ export default class Tunnel extends Component {
 		const cameraPos = this.path.getPointAt(this.movementPerc)
 		const lightPos = this.path.getPointAt((this.movementPerc + 0.005) % 1)
 		let lookAtPos = lightPos.clone()
-		lookAtPos.x += this.cameraRotation.x
-		lookAtPos.y += this.cameraRotation.y
+		// the rotation should be according to cameraPos <-> lookAtPos axis
+		// lookAtPos.x += this.cameraRotation.x
+		// lookAtPos.y += this.cameraRotation.y
 
 		this.container.camera.position.set(cameraPos.x,cameraPos.y,cameraPos.z)
 		this.container.camera.lookAt(lookAtPos)
@@ -168,32 +276,29 @@ export default class Tunnel extends Component {
 
   	this.light.color.setHex(newColor)
 
-  	for(let i = 0; i < this.starsGeometry.vertices.length; i++) {
-  		const item = this.starsGeometry.vertices[i]
+  	for(let i = 0; i < this.iconGeometry.vertices.length; i++) {
+  		const item = this.iconGeometry.vertices[i]
   		const val = sinLookUp(frameCount * 0.006 + i * 0.3) * 0.1
   		item.z += val
   	}
 
-  	this.starsGeometry.verticesNeedUpdate = true
-	}
-
-	switchMode = () => {
-		if (!this.inited) {
-			return
-		}
+  	this.iconGeometry.verticesNeedUpdate = true
 	}
 
 	render(props, states) {
 		return (
-				<div class={style.tunnel} onClick={this.switchMode}>
+			<div 
+				class={style.tunnel} 
+				onClick={this.switchMode}
+			>
 				<p class='instruction'>
 					
 				</p>
 				<ThreeContainer 
 					ref={el => this.container = el}
-					actionZPos={this.zPlanePos} cameraZPos={1}
+					cameraZPos={1}
 					activeFrameDelay={1}
-					customAnimate={() => {this.animate()}}
+					animate={() => {this.animate()}}
 				/>
 			</div>
 		)

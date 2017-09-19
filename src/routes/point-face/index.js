@@ -3,6 +3,7 @@ import {
 	Geometry,
 	ShaderMaterial,
 	Points,
+	Vector2,
 	Vector3
 } from 'three'
 import { sineOut } from 'eases'
@@ -25,6 +26,9 @@ export default class ParticleFace extends Component {
 		}
 
 		this.zPlanePos = -70
+		this.mousePos = new Vector3()
+		this.actionPos = new Vector2()
+
 		this.shaderMaterial = null
 		this.inited = false
 		this.totalMode = 4
@@ -70,15 +74,44 @@ export default class ParticleFace extends Component {
 	  this.inited = true
 	}
 
+	onMouseMove = (evt) => {
+		const x = evt.clientX
+		const y = evt.clientY
+		this.updateActionPos(x, y, this.zPlanePos)
+	}
+
+	onTouchMove = (evt) => {
+		const x = evt.touches[0].clientX
+		const y = evt.touches[0].clientY
+		this.updateActionPos(x, y, this.zPlanePos)
+	}
+
+	updateActionPos = (x, y, z) => {
+		const camera = this.container.camera
+		let vec = new Vector3()
+  	vec.x = (x / window.innerWidth) * 2 - 1
+		vec.y = -(y / window.innerHeight) * 2 + 1
+		vec.z = 0
+		vec.unproject(this.container.camera)
+
+		const dir = vec.sub(camera.position).normalize()
+		const dist = -camera.position.z / dir.z
+
+		this.actionPos = camera.position.clone()
+		this.actionPos.add(dir.multiplyScalar(dist))
+
+		const amt = this.zPlanePos / dir.z
+		this.actionPos.add(dir.multiplyScalar(amt))
+	}
+
 	animate() {
 		if (!this.inited) {
 			return
 		}
-		const actionPos = this.container.actionPos
 		let uniforms = this.shaderMaterial.uniforms
 		uniforms.time.value += 0.02
-		uniforms.point.value.x = actionPos.x
-		uniforms.point.value.y = actionPos.y
+		uniforms.point.value.x = this.actionPos.x
+		uniforms.point.value.y = this.actionPos.y
 
 		if (uniforms.strength.value < 2 && this.container.actionMoving) {
 			uniforms.strength.value += 0.2
@@ -112,9 +145,11 @@ export default class ParticleFace extends Component {
 				</p>
 				<ThreeContainer 
 					ref={el => this.container = el}
-					actionZPos={this.zPlanePos} cameraZPos={1}
+					cameraZPos={1}
 					activeFrameDelay={1}
-					customAnimate={() => {this.animate()}}
+					onMouseMove={this.onMouseMove}
+					onTouchMove={this.onTouchMove}
+					animate={() => {this.animate()}}
 				/>
 			</div>
 		);

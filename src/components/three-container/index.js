@@ -19,8 +19,7 @@ export default class ThreeContainer extends Component {
 		this.cameraZPos = props.cameraZPos
 
 		this.actionZPos = props.actionZPos
-		this.mousePos = new Vector3()
-		this.actionPos = new Vector2()
+		
 		this.actionMoving = false
 		this.activeFrame = -1000
 
@@ -73,40 +72,23 @@ export default class ThreeContainer extends Component {
 	}
 
 	onMouseMove = (evt) => {
-		const x = evt.clientX
-		const y = evt.clientY
-		this.updateActionPos(x, y, this.actionZPos)
+		if (this.props.onMouseMove) {
+			this.props.onMouseMove(evt)
+		}
+		this.setActiveVars()
 	}
 
 	onTouchMove = (evt) => {
-		const x = evt.touches[0].clientX
-		const y = evt.touches[0].clientY
-		this.updateActionPos(x, y, this.actionZPos)
+		if (this.props.onTouchMove) {
+			this.props.onTouchMove(evt)
+		}
+		this.setActiveVars()
 	}
-
-	updateActionPos(x, y, z) {
-
-		this.mousePos.x = x
-		this.mousePos.y = y
-
-		let vec = new Vector3()
-  	vec.x = (x / window.innerWidth) * 2 - 1
-		vec.y = -(y / window.innerHeight) * 2 + 1
-		vec.z = 0
-		vec.unproject(this.camera)
-
-		const dir = vec.sub(this.camera.position).normalize()
-		const dist = -this.camera.position.z / dir.z
-
-		this.actionPos = this.camera.position.clone()
-		this.actionPos.add(dir.multiplyScalar(dist))
-
-		const amt = this.actionZPos / dir.z
-		this.actionPos.add(dir.multiplyScalar(amt))
+	
+	setActiveVars() {
 		this.actionMoving = true
 		this.activeFrame = this.frameCount
 	}
-
 
 	animate = () => {
 		if (!this.renderer) {
@@ -118,8 +100,8 @@ export default class ThreeContainer extends Component {
 		if (this.frameCount - this.activeFrame > this.activeFrameDelay) {
 			this.actionMoving = false
 		}
-		if (this.props.customAnimate) {
-			this.props.customAnimate()
+		if (this.props.animate) {
+			this.props.animate()
 		}
 		requestAnimationFrame(this.animate)
 	}
