@@ -24,9 +24,9 @@ import style from './style.scss'
 
 const hasOrientation = (typeof window.orientation !== 'undefined')
 const tubePath = '/assets/images/swirl.jpg'
-const burstIconPath = '/assets/images/heart.png'
 const iconWeight = {
 	'/assets/images/mint.png': 1.5,
+	'/assets/images/heart.png': 1,
 	'/assets/images/burger.png': 1,
 	'/assets/images/doge.png': 1,
 	'/assets/images/donut.png': 1,
@@ -72,7 +72,7 @@ export default class Tunnel extends Component {
 	}
 
 	componentDidMount() {
-		loadTextures([tubePath, burstIconPath, ...this.iconPathsToLoad])
+		loadTextures([tubePath, ...this.iconPathsToLoad])
 			.then(this.init)
 
 		if (hasOrientation) {
@@ -80,7 +80,6 @@ export default class Tunnel extends Component {
 		} else {
 			document.addEventListener('mousemove', this.handleMouseMove)
 		}
-		// this.init()
 	}
 
 	componentWillUnmount() {
@@ -264,6 +263,11 @@ export default class Tunnel extends Component {
 		const cameraPos = this.path.getPointAt(this.movementPerc)
 		const lightPos = this.path.getPointAt((this.movementPerc + 0.005) % 1)
 		let lookAtPos = lightPos.clone()
+
+		let dir = cameraPos.clone()
+		dir.sub(lightPos)
+		dir.normalize()
+
 		// the rotation should be according to cameraPos <-> lookAtPos axis
 		// lookAtPos.x += this.cameraRotation.x
 		// lookAtPos.y += this.cameraRotation.y
