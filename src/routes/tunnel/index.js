@@ -68,6 +68,8 @@ export default class Tunnel extends Component {
 		this.iconMapMax = this.iconWeightMap[lastIndex].max
 		this.lastSelectedIcon = null
 
+		this.iconTweak = 1
+
 		this.bursts = []
 	}
 
@@ -186,7 +188,8 @@ export default class Tunnel extends Component {
 	}
 
 	burst() {
-		const center = this.path.getPointAt((this.movementPerc + 0.008) % 1)
+		const center = this.light.position.clone()
+
 		const range = 1
 		let burstGeometry = new Geometry()
 		for (let i = 0; i < 30; i++) {
@@ -235,7 +238,8 @@ export default class Tunnel extends Component {
 			return
 		}
 		this.iconMaterial.map = this.getRandomIcon()
-		this.burst()
+		this.iconTweak = 4
+		// this.burst()
 	}
 
 	handleMouseMove = (e) => {
@@ -244,15 +248,15 @@ export default class Tunnel extends Component {
 		const x = (e.clientX - halfWinW) / halfWinW 
 		const y = (e.clientY - halfWinW) / halfWinW
 		// console.log(x, y)
-		this.cameraRotation.x = x
-		this.cameraRotation.y = y
+		this.cameraRotation.x = x * 12
+		this.cameraRotation.y = y * 12
 	}
 
 	handleOrientation = (e) => {
 		//beta: -180 ~ 180, x axis
 		//gamma: -90 ~ 90, y axis
-		this.cameraRotation.x = e.gamma * 0.1
-		this.cameraRotation.y = e.beta * 0.1 - 5
+		this.cameraRotation.x = e.gamma * 0.25
+		this.cameraRotation.y = e.beta * 0.25 - 12
 	}
 
 	animate() {
@@ -260,20 +264,15 @@ export default class Tunnel extends Component {
 			return
 		}
 		this.movementPerc = (this.movementPerc + 0.0004) % 1
-		const cameraPos = this.path.getPointAt(this.movementPerc)
+
 		const lightPos = this.path.getPointAt((this.movementPerc + 0.005) % 1)
-		let lookAtPos = lightPos.clone()
+		let cameraPos = this.path.getPointAt(this.movementPerc)
 
-		let dir = cameraPos.clone()
-		dir.sub(lightPos)
-		dir.normalize()
-
-		// the rotation should be according to cameraPos <-> lookAtPos axis
-		// lookAtPos.x += this.cameraRotation.x
-		// lookAtPos.y += this.cameraRotation.y
+		cameraPos.x += this.cameraRotation.x
+		cameraPos.y += this.cameraRotation.y
 
 		this.container.camera.position.set(cameraPos.x,cameraPos.y,cameraPos.z)
-		this.container.camera.lookAt(lookAtPos)
+		this.container.camera.lookAt(lightPos)
 
   	this.light.position.set(lightPos.x, lightPos.y, lightPos.z)
 
@@ -285,14 +284,24 @@ export default class Tunnel extends Component {
   	const newColor = this.rgb2hex(r, g, b)
 
   	this.light.color.setHex(newColor)
+  	const frameCountV = frameCount * 0.006
+  	const iV = 0.3 * this.iconTweak
 
   	for(let i = 0; i < this.iconGeometry.vertices.length; i++) {
   		const item = this.iconGeometry.vertices[i]
-  		const val = sinLookUp(frameCount * 0.006 + i * 0.3) * 0.1
-  		item.z += val
+  		const val = sinLookUp(frameCountV + i * iV) * 0.1
+  		if (i % 2) {
+	  		item.z += val
+  		} else {
+  			item.x += val
+  		}
   	}
 
   	this.iconGeometry.verticesNeedUpdate = true
+
+  	if (this.iconTweak > 1) {
+  		this.iconTweak -= 0.2
+  	}
 	}
 
 	render(props, states) {
@@ -301,9 +310,7 @@ export default class Tunnel extends Component {
 				class={style.tunnel} 
 				onClick={this.switchMode}
 			>
-				<p class='instruction'>
-					
-				</p>
+				<p class='instruction'>Click to change the icons. Move to move the camera.</p>
 				<ThreeContainer 
 					ref={el => this.container = el}
 					cameraZPos={1}
