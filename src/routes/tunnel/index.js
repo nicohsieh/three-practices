@@ -23,10 +23,9 @@ import { sinLookUp } from '../../utils/sinLookUp'
 import style from './style.scss'
 
 const hasOrientation = (typeof window.orientation !== 'undefined')
-const tubePath = '/assets/images/swirl.jpg'
+const tubePath = '/assets/images/bg.jpg'
 const iconWeight = {
 	'/assets/images/mint.png': 1.5,
-	'/assets/images/heart.png': 1,
 	'/assets/images/burger.png': 1,
 	'/assets/images/doge.png': 1,
 	'/assets/images/donut.png': 1,
@@ -278,9 +277,9 @@ export default class Tunnel extends Component {
 
   	// light color 
   	const frameCount = this.container.frameCount
-  	const r = ~~((sinLookUp(frameCount * 0.019) + 1) * 100 + 27)
-  	const g = ~~((sinLookUp(frameCount * 0.013 + 2) + 1) * 70 + 30)
-  	const b = ~~((sinLookUp(frameCount * 0.017 + 3) + 1) * 90 + 37)
+  	const r = ~~((sinLookUp(frameCount * 0.019 * this.iconTweak) + 1) * 100 + 47 )
+  	const g = ~~((sinLookUp(frameCount * 0.013 * this.iconTweak + 2) + 1) * 100 + 30)
+  	const b = ~~((sinLookUp(frameCount * 0.017 * this.iconTweak + 3) + 1) * 100 + 37)
   	const newColor = this.rgb2hex(r, g, b)
 
   	this.light.color.setHex(newColor)
