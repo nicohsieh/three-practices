@@ -186,38 +186,6 @@ export default class Tunnel extends Component {
 	  this.inited = true
 	}
 
-	burst() {
-		const center = this.light.position.clone()
-
-		const range = 1
-		let burstGeometry = new Geometry()
-		for (let i = 0; i < 30; i++) {
-			let icon = new Vector3()
-			icon.x = center.x + ThreeMath.randFloat(-range, range)
-			icon.y = center.y + ThreeMath.randFloat(-range, range)
-			icon.z = center.z + ThreeMath.randFloat(-range, range)
-
-			burstGeometry.vertices.push(icon)
-		}
-
-		let burstMaterial = new PointsMaterial({
-			map: this.textures[this.lastSelectedIcon],
-			alphaTest: 0.1,
-			color: 0xf4d0f2,
-			size: 0.4,
-			transparent: true,
-		})
-
-		let burst = new Points(burstGeometry, burstMaterial)
-		this.container.scene.add(burst)
-
-		setTimeout(() => {
-			this.container.scene.remove(burst)
-			burstGeometry.dispose()
-			burstMaterial.dispose()
-		}, 1000)
-	}
-
 	rgb2hex(r, g, b) {
 		let c1 = r.toString(16)
 		let str = '0x'
@@ -238,7 +206,6 @@ export default class Tunnel extends Component {
 		}
 		this.iconMaterial.map = this.getRandomIcon()
 		this.iconTweak = 4
-		// this.burst()
 	}
 
 	handleMouseMove = (e) => {
