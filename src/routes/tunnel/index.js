@@ -2,7 +2,7 @@ import { h, Component } from 'preact'
 import {
 	Geometry,
 	TubeBufferGeometry,
-	MeshLambertMaterial,
+	MeshPhongMaterial,
 	PointsMaterial,
 	Mesh,
 	BackSide,
@@ -10,7 +10,6 @@ import {
 	Vector2,
 	Vector3,
 	PointLight,
-	FaceColors,
 	RepeatWrapping,
 	Fog,
 	Math as ThreeMath
@@ -142,7 +141,7 @@ export default class Tunnel extends Component {
     texture.repeat.set(3, 5)
 
 		const geometry = new TubeBufferGeometry(this.path, 400, 2, 12, true)
-		const material = new MeshLambertMaterial({
+		const material = new MeshPhongMaterial({
 			color: 0xffffff,
 			emissive: 0x6b0d66,
 		  side : BackSide,
