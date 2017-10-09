@@ -28,6 +28,7 @@
   "dependencies": {
     "dat.gui": "^0.6.1",
     "eases": "^1.0.8",
+    "oimo": "^1.0.9",
     "preact": "^8.2.1",
     "preact-compat": "^3.17.0",
     "preact-router": "^2.5.5",
