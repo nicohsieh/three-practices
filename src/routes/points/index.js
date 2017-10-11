@@ -6,10 +6,14 @@ import {
 	Mesh,
 	MeshPhongMaterial,
 	MeshBasicMaterial,
+	MeshStandardMaterial,
 	Vector2,
 	Vector3,
 	PointLight,
+	AmbientLight,
 	DirectionalLight,
+	PCFSoftShadowMap,
+	Color,
 	Math as ThreeMath
 } from 'three'
 import { loadTextures } from '../../utils/textureLoader'
@@ -28,6 +32,9 @@ export default class Ponts extends Component {
 
 	componentDidMount() {
 		// this.container.scene.background = new Color(0xffffff)
+		this.container.renderer.shadowMap.enabled = true
+		this.container.renderer.shadowMap.type = PCFSoftShadowMap
+		// this.container.scene.background = new Color(0xffffff)
 		this.init()
 	}
 
@@ -37,33 +44,31 @@ export default class Ponts extends Component {
 			worldScale: 100
 		})
 
-		this.world.gravity = new OIMO.Vec3(0, -3.5, 0)
+		this.world.gravity = new OIMO.Vec3(0, -4, 0)
 
-		const groundSize = [30, 2, 30]
-		const groundPos = [0, -20, 0]
+		const groundSize = [30, 1, 20]
+		const groundPos = [0, -15, -40]
 		this.ground = this.world.add({
 			size: groundSize,
 			pos: groundPos,
 			config: [
 				1, // The density of the shape.
-        0.1, // The coefficient of friction of the shape.
+        0.3, // The coefficient of friction of the shape.
         0.2, // The coefficient of restitution of the shape.
         1, // The bits of the collision groups to which the shape belongs.
         0xffffffff // The bits of the collision groups with which the shape collides.
 			]
 		})
 		
-
 		let groundGeometry = new BoxBufferGeometry(...groundSize)
-		let groundMeterial = new MeshPhongMaterial({
+		let groundMeterial = new MeshStandardMaterial({
 			color: 0xc6c6c6,
-			emissive: 0x424141
+			// emissive: 0x424141
 		})
 		let groundMesh = new Mesh(groundGeometry, groundMeterial)
 		groundMesh.receiveShadow = true
-		groundMesh.castShadow = true
 		groundMesh.position.set(...groundPos)
-
+		// groundMesh.rotation.set(0.3, 0, 0)
 		this.container.scene.add(groundMesh)
 
 
@@ -73,20 +78,20 @@ export default class Ponts extends Component {
 		let geometry = new BoxBufferGeometry(1, 1, 1)
 		let material = new MeshPhongMaterial({
 			color: 0xffffff,
-			emissive: 0xe2004f
+			// emissive: 0xe2004f
 		})
 
 		for(let i = 0; i < 15; i++) {
 			const x = ThreeMath.randFloat(-10, 10)
 			const y = ThreeMath.randFloat(10, 0)
-			const z = ThreeMath.randFloat(-10, 0)
+			const z = ThreeMath.randFloat(-10, 0) - 40
 
 			let body = this.world.add({
 				type:'box', 
 				size: [size, size, size], 
 				pos: [x, y, z], 
-				move: true, 
-				config: [1, 0, 0, 1, 0xffffffff]
+				move: true,
+				config: [1, 0.3, 0, 1, 0xffffffff]
 			})
 
 			let mesh = new Mesh(geometry, material)
@@ -99,9 +104,15 @@ export default class Ponts extends Component {
 			this.bodys.push(body)
 		}
    
-  	this.light = new PointLight(0xffffff, 1, 150)
-  	this.light.position.set(0, 5, 5)
+  	this.light = new PointLight(0xffffff, 1, 100)
+  	this.light.position.set(0, 10, -10)
+		this.light.shadow.camera.near = 0.5
+		this.light.shadow.camera.far = -100  
+  	this.light.castShadow = true
   	this.container.scene.add(this.light)
+
+  	const ambientLight = new AmbientLight(0x011b56)
+  	this.container.scene.add(ambientLight)
 		this.inited = true
 	}
 
@@ -130,7 +141,6 @@ export default class Ponts extends Component {
 				mesh.position.copy(body.getPosition())
         mesh.quaternion.copy(body.getQuaternion())
 			}
-
 		}
 	}
 
@@ -146,7 +156,7 @@ export default class Ponts extends Component {
 				</p>
 				<ThreeContainer 
 					ref={el => this.container = el}
-					cameraZPos={50}
+					cameraZPos={0}
 					onMouseMove={this.onMouseMove}
 					onTouchMove={this.onTouchMove}
 					animate={() => {this.animate()}}
