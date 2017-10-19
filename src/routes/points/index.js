@@ -21,13 +21,22 @@ import ThreeContainer from '../../components/three-container'
 
 import style from './style.scss'
 
+const hasOrientation = (typeof window.orientation !== 'undefined')
+
+// drag element
+// change gravity
+
 
 // use shader material
 export default class Ponts extends Component {
 
 	constructor(props) {
 		super(props)
-
+		this.state = {
+			beta: 0,
+			gamma: 0,
+			alpha: 0
+		}
 	}
 
 	componentDidMount() {
@@ -36,6 +45,16 @@ export default class Ponts extends Component {
 		this.container.renderer.shadowMap.type = PCFSoftShadowMap
 		// this.container.scene.background = new Color(0xffffff)
 		this.init()
+
+		if (hasOrientation) {
+			window.addEventListener('deviceorientation', this.handleOrientation, true)
+		}
+	}
+
+	componentWillUnmount() {
+		if (hasOrientation) {
+			window.removeEventListener('deviceorientation', this.handleOrientation)
+		}
 	}
 
 	init = (textures) => {
@@ -46,38 +65,14 @@ export default class Ponts extends Component {
 
 		this.world.gravity = new OIMO.Vec3(0, -4, 0)
 
-		const groundSize = [30, 1, 20]
-		const groundPos = [0, -15, -40]
-		this.ground = this.world.add({
-			size: groundSize,
-			pos: groundPos,
-			config: [
-				1, // The density of the shape.
-        0.3, // The coefficient of friction of the shape.
-        0.2, // The coefficient of restitution of the shape.
-        1, // The bits of the collision groups to which the shape belongs.
-        0xffffffff // The bits of the collision groups with which the shape collides.
-			]
-		})
-		
-		let groundGeometry = new BoxBufferGeometry(...groundSize)
-		let groundMeterial = new MeshStandardMaterial({
-			color: 0xc6c6c6,
-			// emissive: 0x424141
-		})
-		let groundMesh = new Mesh(groundGeometry, groundMeterial)
-		groundMesh.receiveShadow = true
-		groundMesh.position.set(...groundPos)
-		// groundMesh.rotation.set(0.3, 0, 0)
-		this.container.scene.add(groundMesh)
-
+		this.createBox()
 
 		this.meshs = []
 		this.bodys = []
 		const size = 3
 		let geometry = new BoxBufferGeometry(1, 1, 1)
 		let material = new MeshPhongMaterial({
-			color: 0xffffff,
+			color: 0xf246ad,
 			// emissive: 0xe2004f
 		})
 
@@ -91,7 +86,7 @@ export default class Ponts extends Component {
 				size: [size, size, size], 
 				pos: [x, y, z], 
 				move: true,
-				config: [1, 0.3, 0, 1, 0xffffffff]
+				config: [0.5, 0.3, 0, 1, 0xffffffff]
 			})
 
 			let mesh = new Mesh(geometry, material)
@@ -111,19 +106,81 @@ export default class Ponts extends Component {
   	this.light.castShadow = true
   	this.container.scene.add(this.light)
 
-  	const ambientLight = new AmbientLight(0x011b56)
+  	const ambientLight = new AmbientLight(0x560101)
   	this.container.scene.add(ambientLight)
 		this.inited = true
+	}
+
+	createBox() {
+		const w = 30
+		const t = 1
+		const z = -40
+
+		const sizes = [
+			[w, t, w],
+			[t, w, w],
+			[w, t, w],
+			[t, w, w],
+			[w, w, t],
+		]
+
+		const positions = [
+			[0, w/2, z],
+			[w/2, 0, z],
+			[0, -w/2, z],
+			[-w/2, 0, z],
+			[0, 0, z - w / 2],
+		]
+		const groundSize = [30, 1, 20]
+		const groundPos = [0, -15, -40]
+		let groundMeterial = new MeshStandardMaterial({
+			color: 0xfff9d1,
+			// emissive: 0x424141
+		})
+
+		for (let i = 0; i < sizes.length; i++) {
+			this.createWall(groundMeterial, sizes[i], positions[i])
+		}
+	}
+
+	createWall(meterial, size, pos) {
+
+		let geometry = new BoxBufferGeometry(...size)
+		let ground = this.world.add({
+			size: size,
+			pos: pos,
+			config: [1, 0, 0.2, 1, 0xffffffff]
+		})
+		let mesh = new Mesh(geometry, meterial)
+		mesh.receiveShadow = true
+		mesh.position.set(...pos)
+		this.container.scene.add(mesh)
 	}
 
 	onMouseMove = (evt) => {
 		const x = evt.clientX
 		const y = evt.clientY
+
+		const xf = x / (window.innerWidth * 0.5) - 1
+		const yf = y /  (window.innerHeight * 0.5) - 1
+		this.world.gravity.x = xf * -20
+		this.world.gravity.y = yf * -10
 	}
 
 	onTouchMove = (evt) => {
 		const x = evt.touches[0].clientX
 		const y = evt.touches[0].clientY
+	}
+
+	handleOrientation = (e) => {
+		this.world.gravity.x = e.gamma * 0.3 
+		this.world.gravity.y = e.beta * -0.3
+		// this.world.gravity.z = (e.alpha - 180) * 0.3
+		this.setState({
+			beta: e.beta.toFixed(2),
+			gamma: e.gamma.toFixed(2),
+			alpha: e.alpha.toFixed(2)
+		})
 	}
 
 	animate() {
@@ -149,11 +206,15 @@ export default class Ponts extends Component {
 	}
 
 	render(props, states) {
-
 		return (
 			<div class={style['points']} onClick={this.switchMode}>
 				<p class='instruction'>
 				</p>
+				<ul>
+					<li>Beta: {states.beta}</li>
+					<li>Gamma: {states.gamma}</li>
+					<li>Alpha: {states.alpha}</li>
+				</ul>
 				<ThreeContainer 
 					ref={el => this.container = el}
 					cameraZPos={0}
