@@ -71,7 +71,6 @@ export default class Ponts extends Component {
 
 		this.meshs = []
 		this.bodys = []
-		const size = 2
 		let geometry = new SphereBufferGeometry(1, 14, 14)
 		let material = new MeshPhongMaterial({
 			color: 0xf246ad,
@@ -82,6 +81,7 @@ export default class Ponts extends Component {
 			const x = ThreeMath.randFloat(-10, 10)
 			const y = ThreeMath.randFloat(10, 0)
 			const z = ThreeMath.randFloat(-10, 0) - 40
+			const size = 2 + Math.random()
 
 			let body = this.world.add({
 				type:'sphere', 
