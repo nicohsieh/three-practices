@@ -3,6 +3,7 @@ import * as OIMO from 'oimo'
 import {
 	BufferGeometry,
 	BoxBufferGeometry,
+	SphereBufferGeometry,
 	Mesh,
 	MeshPhongMaterial,
 	MeshBasicMaterial,
@@ -37,6 +38,7 @@ export default class Ponts extends Component {
 			gamma: 0,
 			alpha: 0
 		}
+		this.cameraZPos = 0
 	}
 
 	componentDidMount() {
@@ -69,24 +71,24 @@ export default class Ponts extends Component {
 
 		this.meshs = []
 		this.bodys = []
-		const size = 3
-		let geometry = new BoxBufferGeometry(1, 1, 1)
+		const size = 2
+		let geometry = new SphereBufferGeometry(1, 14, 14)
 		let material = new MeshPhongMaterial({
 			color: 0xf246ad,
 			// emissive: 0xe2004f
 		})
 
-		for(let i = 0; i < 15; i++) {
+		for(let i = 0; i < 20; i++) {
 			const x = ThreeMath.randFloat(-10, 10)
 			const y = ThreeMath.randFloat(10, 0)
 			const z = ThreeMath.randFloat(-10, 0) - 40
 
 			let body = this.world.add({
-				type:'box', 
+				type:'sphere', 
 				size: [size, size, size], 
 				pos: [x, y, z], 
 				move: true,
-				config: [0.5, 0.3, 0, 1, 0xffffffff]
+				config: [0.2 + Math.random() * 0.5, 0.3, 0, 1, 0xffffffff]
 			})
 
 			let mesh = new Mesh(geometry, material)
@@ -112,7 +114,7 @@ export default class Ponts extends Component {
 	}
 
 	createBox() {
-		const w = 30
+		const w = 24
 		const t = 1
 		const z = -40
 
@@ -122,6 +124,7 @@ export default class Ponts extends Component {
 			[w, t, w],
 			[t, w, w],
 			[w, w, t],
+			[w, w, t],
 		]
 
 		const positions = [
@@ -130,27 +133,33 @@ export default class Ponts extends Component {
 			[0, -w/2, z],
 			[-w/2, 0, z],
 			[0, 0, z - w / 2],
+			[0, 0, -26],
 		]
 		const groundSize = [30, 1, 20]
 		const groundPos = [0, -15, -40]
 		let groundMeterial = new MeshStandardMaterial({
-			color: 0xfff9d1,
+			color: 0xfcffed,
 			// emissive: 0x424141
 		})
 
 		for (let i = 0; i < sizes.length; i++) {
-			this.createWall(groundMeterial, sizes[i], positions[i])
+			const transparent = (i === 5)
+			this.createWall(groundMeterial, sizes[i], positions[i], transparent)
 		}
 	}
 
-	createWall(meterial, size, pos) {
-
-		let geometry = new BoxBufferGeometry(...size)
-		let ground = this.world.add({
+	createWall(meterial, size, pos, transparent) {
+		this.world.add({
 			size: size,
 			pos: pos,
 			config: [1, 0, 0.2, 1, 0xffffffff]
 		})
+
+		if (transparent) {
+			return
+		}
+
+		let geometry = new BoxBufferGeometry(...size)
 		let mesh = new Mesh(geometry, meterial)
 		mesh.receiveShadow = true
 		mesh.position.set(...pos)
@@ -173,8 +182,9 @@ export default class Ponts extends Component {
 	}
 
 	handleOrientation = (e) => {
-		this.world.gravity.x = e.gamma * 0.3 
-		this.world.gravity.y = e.beta * -0.3
+		this.world.gravity.x = e.gamma * 0.4
+		this.world.gravity.y = e.beta * -0.4
+		this.world.gravity.z = e.gamma * -0.2
 		// this.world.gravity.z = (e.alpha - 180) * 0.3
 		this.setState({
 			beta: e.beta.toFixed(2),
@@ -211,13 +221,13 @@ export default class Ponts extends Component {
 				<p class='instruction'>
 				</p>
 				<ul>
-					<li>Beta: {states.beta}</li>
-					<li>Gamma: {states.gamma}</li>
-					<li>Alpha: {states.alpha}</li>
+					<li>Beta(x axis): {states.beta}</li>
+					<li>Gamma(y axis): {states.gamma}</li>
+					<li>Alpha(z axis): {states.alpha}</li>
 				</ul>
 				<ThreeContainer 
 					ref={el => this.container = el}
-					cameraZPos={0}
+					cameraZPos={this.cameraZPos}
 					onMouseMove={this.onMouseMove}
 					onTouchMove={this.onTouchMove}
 					animate={() => {this.animate()}}
