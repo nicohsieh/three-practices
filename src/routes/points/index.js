@@ -14,7 +14,9 @@ import {
 	AmbientLight,
 	DirectionalLight,
 	PCFSoftShadowMap,
+	BasicShadowMap,
 	Color,
+	CameraHelper,
 	Math as ThreeMath
 } from 'three'
 import { loadTextures } from '../../utils/textureLoader'
@@ -38,14 +40,14 @@ export default class Ponts extends Component {
 			gamma: 0,
 			alpha: 0
 		}
-		this.cameraZPos = 0
+		this.cameraZPos = 5
 	}
 
 	componentDidMount() {
-		// this.container.scene.background = new Color(0xffffff)
 		this.container.renderer.shadowMap.enabled = true
 		this.container.renderer.shadowMap.type = PCFSoftShadowMap
-		// this.container.scene.background = new Color(0xffffff)
+		this.container.renderer.sortObjects = false
+		// this.container.scene.background = new Color(0x0e051c)
 		this.init()
 
 		if (hasOrientation) {
@@ -73,19 +75,19 @@ export default class Ponts extends Component {
 		this.bodys = []
 		let geometry = new SphereBufferGeometry(1, 14, 14)
 		let material = new MeshPhongMaterial({
-			color: 0xf246ad,
-			// emissive: 0xe2004f
+			color: 0xfcc4ff,
+			emissive: 0x332051
 		})
 
-		for(let i = 0; i < 20; i++) {
+		for(let i = 0; i < 30; i++) {
 			const x = ThreeMath.randFloat(-10, 10)
 			const y = ThreeMath.randFloat(10, 0)
-			const z = ThreeMath.randFloat(-10, 0) - 40
-			const size = 2 + Math.random()
-
+			const z = ThreeMath.randFloat(-15, -25)
+			const size = ThreeMath.randFloat(2, 4)
+			const physicSize = Math.min(2, size * 0.8)
 			let body = this.world.add({
 				type:'sphere', 
-				size: [size, size, size], 
+				size: [physicSize, physicSize, physicSize], 
 				pos: [x, y, z], 
 				move: true,
 				config: [0.2 + Math.random() * 0.5, 0.3, 0, 1, 0xffffffff]
@@ -93,30 +95,41 @@ export default class Ponts extends Component {
 
 			let mesh = new Mesh(geometry, material)
 			mesh.position.set(x, y, z)
-			mesh.scale.set(size, size, size)
+			mesh.scale.set(size, size * ThreeMath.randFloat(1.5, 1.8), size * ThreeMath.randFloat(0.8, 1.2))
 			mesh.castShadow = true
 			mesh.receiveShadow = true
 			this.container.scene.add(mesh)
 			this.meshs.push(mesh)
 			this.bodys.push(body)
 		}
+
+		const ambientLight = new AmbientLight(0x890369)
+  	this.container.scene.add(ambientLight)
    
-  	this.light = new PointLight(0xffffff, 1, 100)
+  	this.light = new PointLight(0xfdffe5, 1, 100)
   	this.light.position.set(0, 10, -10)
-		this.light.shadow.camera.near = 0.5
-		this.light.shadow.camera.far = -100  
   	this.light.castShadow = true
+  	this.light.intensity = 0.3
+  	this.light.shadow.camera.near = 0.5
+		this.light.shadow.camera.far = -100  
+  	this.light.shadow.bias = 0.0002
+  	this.light.shadow.camera.far = 100
+  	this.light.shadow.radius = 1.7
+  	// this.light.shadow.mapSize.x = 1024
+  	// this.light.shadow.mapSize.y = 1024
+
   	this.container.scene.add(this.light)
 
-  	const ambientLight = new AmbientLight(0x560101)
-  	this.container.scene.add(ambientLight)
+  	
+  	// const helper = new CameraHelper( this.light.shadow.camera );
+		// this.container.scene.add( helper )
 		this.inited = true
 	}
 
 	createBox() {
-		const w = 24
-		const t = 1
-		const z = -40
+		const w = 26 //width
+		const t = 1	//thickness
+		const z = -30 //z index
 
 		const sizes = [
 			[w, t, w],
@@ -132,7 +145,7 @@ export default class Ponts extends Component {
 			[w/2, 0, z],
 			[0, -w/2, z],
 			[-w/2, 0, z],
-			[0, 0, z - w / 2],
+			[0, 0, -15],
 			[0, 0, -26],
 		]
 		const groundSize = [30, 1, 20]
@@ -143,7 +156,7 @@ export default class Ponts extends Component {
 		})
 
 		for (let i = 0; i < sizes.length; i++) {
-			const transparent = (i === 5)
+			const transparent = true//(i === 4)
 			this.createWall(groundMeterial, sizes[i], positions[i], transparent)
 		}
 	}
@@ -173,7 +186,7 @@ export default class Ponts extends Component {
 		const xf = x / (window.innerWidth * 0.5) - 1
 		const yf = y /  (window.innerHeight * 0.5) - 1
 		this.world.gravity.x = xf * -20
-		this.world.gravity.y = yf * -10
+		this.world.gravity.y = yf * 10
 	}
 
 	onTouchMove = (evt) => {
@@ -182,9 +195,9 @@ export default class Ponts extends Component {
 	}
 
 	handleOrientation = (e) => {
-		this.world.gravity.x = e.gamma * 0.4
-		this.world.gravity.y = e.beta * -0.4
-		this.world.gravity.z = e.gamma * -0.2
+		this.world.gravity.x = e.gamma * 0.8
+		this.world.gravity.y = e.beta * -0.8
+		this.world.gravity.z = e.gamma * -0.4
 		// this.world.gravity.z = (e.alpha - 180) * 0.3
 		this.setState({
 			beta: e.beta.toFixed(2),
