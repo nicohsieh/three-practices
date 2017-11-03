@@ -35,7 +35,7 @@ export default class App extends Component {
 					<Profile path="/profile/:user" />
 					<PointFace path='/point-face' />
 					<Tunnel path='/tunnel' />
-					<Points path='/cubes' />
+					<Points path='/bubbles' />
 				</Router>
 			</div>
 		);

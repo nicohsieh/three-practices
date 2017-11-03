@@ -206,11 +206,11 @@ export default class Ponts extends Component {
 		this.world.gravity.y = e.beta * -0.8
 		this.world.gravity.z = e.gamma * -0.4
 		// this.world.gravity.z = (e.alpha - 180) * 0.3
-		this.setState({
-			beta: e.beta.toFixed(2),
-			gamma: e.gamma.toFixed(2),
-			alpha: e.alpha.toFixed(2)
-		})
+		// this.setState({
+		// 	beta: e.beta.toFixed(2),
+		// 	gamma: e.gamma.toFixed(2),
+		// 	alpha: e.alpha.toFixed(2)
+		// })
 	}
 
 	animate() {
@@ -240,11 +240,11 @@ export default class Ponts extends Component {
 			<div class={style['points']} onClick={this.switchMode}>
 				<p class='instruction'>
 				</p>
-				<ul>
+				{/*<ul>
 					<li>Beta(x axis): {states.beta}</li>
 					<li>Gamma(y axis): {states.gamma}</li>
 					<li>Alpha(z axis): {states.alpha}</li>
-				</ul>
+				</ul>*/}
 				<ThreeContainer 
 					ref={el => this.container = el}
 					cameraZPos={this.cameraZPos}
