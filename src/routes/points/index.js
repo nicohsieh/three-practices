@@ -47,6 +47,7 @@ export default class Ponts extends Component {
 		this.container.renderer.shadowMap.enabled = true
 		this.container.renderer.shadowMap.type = PCFSoftShadowMap
 		this.container.renderer.sortObjects = false
+		this.container.renderer.setClearColor(0xff0000, 0)
 		// this.container.scene.background = new Color(0x0e051c)
 		this.init()
 
@@ -73,17 +74,21 @@ export default class Ponts extends Component {
 
 		this.meshs = []
 		this.bodys = []
-		let geometry = new SphereBufferGeometry(1, 14, 14)
 		let material = new MeshPhongMaterial({
 			color: 0xfcc4ff,
 			emissive: 0x332051
 		})
 
-		for(let i = 0; i < 30; i++) {
+		let material2 = new MeshPhongMaterial({
+			color: 0xfcc4ff,
+			emissive: 0x451f50
+		})
+
+		for(let i = 0; i < 40; i++) {
 			const x = ThreeMath.randFloat(-10, 10)
 			const y = ThreeMath.randFloat(10, 0)
 			const z = ThreeMath.randFloat(-15, -25)
-			const size = ThreeMath.randFloat(2, 4)
+			const size = (i > 20) ? ThreeMath.randFloat(3, 4) : ThreeMath.randFloat(1.5, 3)
 			const physicSize = Math.min(2, size * 0.8)
 			let body = this.world.add({
 				type:'sphere', 
@@ -92,8 +97,10 @@ export default class Ponts extends Component {
 				move: true,
 				config: [0.2 + Math.random() * 0.5, 0.3, 0, 1, 0xffffffff]
 			})
-
-			let mesh = new Mesh(geometry, material)
+			
+			let seg = ~~(size * 6)
+			let geometry = new SphereBufferGeometry(1, seg, seg)
+			let mesh = (i % 2) ? new Mesh(geometry, material) : new Mesh(geometry, material2)
 			mesh.position.set(x, y, z)
 			mesh.scale.set(size, size * ThreeMath.randFloat(1.5, 1.8), size * ThreeMath.randFloat(0.8, 1.2))
 			mesh.castShadow = true

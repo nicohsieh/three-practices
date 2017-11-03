@@ -32,6 +32,7 @@ export default class ThreeContainer extends Component {
 		this.renderer = new WebGLRenderer({
 			canvas: this.canvas,
 			antialias: true,
+			alpha: true
 		})
 		this.renderer.setSize(window.innerWidth, window.innerHeight)
 
